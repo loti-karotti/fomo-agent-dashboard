@@ -144,6 +144,12 @@ li { margin: 4px 0; max-width: 75ch; }
     <div class="scroll"><table><thead><tr><th>Zeit</th><th>Konto</th><th>Befund</th><th>Beste Variante</th><th>Test</th><th>Entscheidung</th></tr></thead><tbody id="t-check"></tbody></table></div>
   </section>
 
+  <section class="card">
+    <h2>Fehlergedächtnis</h2>
+    <p class="sub">Jeder Verlust-Trade der Lernkonten wird nachträglich eingeordnet: Was ist schiefgelaufen, und was ändert der Agent deshalb? Coins, die mehrfach verloren haben, meidet er für zwei Stunden: <b id="blocked">—</b></p>
+    <div class="scroll"><table><thead><tr><th>Konto</th><th>Was schiefging</th><th class="num">Anzahl</th><th class="num">Anteil an allen Trades</th><th>Was der Agent daraus macht</th></tr></thead><tbody id="t-errors"></tbody></table></div>
+  </section>
+
   <section class="strats" id="strats"></section>
 
   <section class="card">
@@ -266,6 +272,9 @@ li { margin: 4px 0; max-width: 75ch; }
     $('lg-status').textContent = s.lg_trainiert == null ? 'Das Lerngehirn startet mit dem nächsten Durchlauf.'
       : s.lg_aktiv ? `Aktiv seit genug Beispielen: stützt sich auf ${de(s.lg_trainiert)} abgeschlossene Lern-Trades, kauft nur bei positivem Erfahrungswert und nutzt die Marge von „${s.lg_stufe}“. Neu berechnet ${s.lg_stand}.`
       : `Sammelt noch Beispiele: ${de(s.lg_trainiert)} von ${de(s.lg_noetig)} abgeschlossenen Lern-Trades. Erst dann fängt es an, selbst zu kaufen.`;
+    $('blocked').textContent = (s.liste_gesperrt || []).length ? s.liste_gesperrt.map((d) => '$' + d.token + ' bis ' + d.bis).join(', ') : 'derzeit keiner';
+    rowsOrEmpty($('t-errors'), s.liste_fehler || [], 5, 'Noch kein Verlust-Trade eingeordnet.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.konto), el('td', null, d.fehler), el('td', 'num', d.anzahl), el('td', 'num', de(d.anteil_pct) + ' %'), el('td', null, d.folge)); return tr; });
     rowsOrEmpty($('t-check'), s.liste_pruefung || [], 6, 'Noch keine Prüfung: Ein Lernkonto wird erst ab 20 abgeschlossenen Trades beurteilt.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.stufe), el('td', null, d.befund), el('td', null, d.variante), el('td', null, d.test), pill(d.urteil, d.uebernommen ? 'ok' : 'muted')); return tr; });
     rowsOrEmpty($('t-tiers'), s.liste_stufen || [], 8, 'Noch keine Lernkonten.', (d) => { const tr = el('tr');
