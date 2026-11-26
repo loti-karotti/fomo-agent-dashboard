@@ -60,6 +60,17 @@ td { padding: 10px; border-bottom: 1px solid rgba(30,41,66,.6); vertical-align: 
 td.mono { font-family: var(--mono); white-space: nowrap; font-size: 13px; }
 .empty { color: var(--muted); text-align: center; padding: 22px 10px; }
 .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 12px; white-space: nowrap; border: 1px solid currentColor; }
+.divider { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+.divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+.divider h2 { font-size: 1.5rem; margin: 0; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.intro { margin: 0; color: var(--muted); max-width: 70ch; }
+.strats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.strat { display: grid; gap: 6px; align-content: start; }
+.strat .name { font-weight: 600; }
+.strat .idea { font-size: 12.5px; color: var(--muted); min-height: 2.6em; }
+.strat .ret { font-size: 2rem; font-weight: 300; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.strat .meta { font: 12px var(--mono); color: var(--muted); }
+.pos { color: var(--ok); } .neg { color: var(--bad); }
 .pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.muted { color: var(--muted); } .pill.buy { color: var(--a); } .pill.sell { color: #a78bfa; }
 details { color: var(--muted); font-size: 13px; }
 summary { cursor: pointer; color: var(--fg); }
@@ -110,12 +121,36 @@ li { margin: 4px 0; max-width: 75ch; }
     <div class="scroll"><table><thead><tr><th>Trader</th><th class="num">Rang</th><th class="num">Signale</th><th class="num">Ausgeführt</th><th class="num">Abgeschlossen</th><th class="num">Offen</th><th class="num">Rendite</th><th class="num">Drawdown</th><th>Status</th></tr></thead><tbody id="t-trader"></tbody></table></div>
   </section>
 
+  <div class="divider"><h2>Agent 2 · Signale</h2></div>
+  <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt vier Regelwerke mit je 10.000 USD Papiergeld durch. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
+
+  <section class="strats" id="strats"></section>
+
+  <section class="card">
+    <h2>Offene Papier-Positionen</h2>
+    <p class="sub">Was die Regelwerke gerade halten und warum sie gekauft haben.</p>
+    <div class="scroll"><table><thead><tr><th>Regelwerk</th><th>Token</th><th>Chain</th><th>Gekauft</th><th class="num">Stand</th><th>Kaufgrund</th></tr></thead><tbody id="t-pos"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Letzte Signale</h2>
+    <p class="sub">Neueste zuerst: jedes Kauf- und Verkaufssignal mit Begründung.</p>
+    <div class="scroll"><table><thead><tr><th>Zeit</th><th>Regelwerk</th><th>Signal</th><th>Token</th><th>Chain</th><th>Begründung</th></tr></thead><tbody id="t-sig"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Rückrechnung auf den Kursverlauf</h2>
+    <p class="sub">So hätten die beiden kursbasierten Regelwerke in den letzten 48 Stunden auf <b id="bt-coins">—</b> beobachteten Coins abgeschnitten, mit verschiedenen Stop- und Zielwerten. Stand <span id="bt-stand">—</span>. Eine gute Zeile hier ist kein Beweis: Bei so wenig Daten ist viel Zufall dabei.</p>
+    <div class="scroll"><table><thead><tr><th>Regelwerk</th><th class="num">Stop</th><th class="num">Ziel</th><th class="num">Trades</th><th class="num">Trefferquote</th><th class="num">Schnitt je Trade</th><th class="num">Summe</th><th>Variante</th></tr></thead><tbody id="t-bt"></tbody></table></div>
+  </section>
+
   <details>
     <summary>Was diese Zahlen bedeuten und wo ihre Grenzen liegen</summary>
     <ul>
       <li>Die 100 Trader sind die Allzeit-Rangliste von Fomo, eingefroren beim Start. Gehandelt wird nur mit Papiergeld, echtes Geld bewegt der Agent nie. Die Seite ist keine Anlageempfehlung.</li>
       <li>Größere Trades kommen in Echtzeit über den Fomo-Feed. Kleinere Trades erfasst der Agent seit Donnerstag, 12:00 Uhr, zusätzlich direkt über die Wallets der Trader auf der Blockchain, meist mit ein bis zwei Minuten Verzögerung.</li>
       <li>Ein Verkauf einer Position, die schon vor dem Start bestand, zählt als „ohne Demoposition“ und löst nichts aus.</li>
+      <li>Agent 2 ist ein Experiment mit Papiergeld und keine Anlageempfehlung. Seine Regelwerke sind einfache, feste Regeln, kein lernendes Modell.</li>
       <li>Als Meme-Coin gilt jeder Token, der nicht auf der Ausschlussliste steht (Majors, Stablecoins und Ähnliches).</li>
       <li>Der Rechner lädt jede Minute einen neuen Stand hoch, die Seite holt ihn selbst ab. Bis er hier erscheint, vergehen wenige Minuten. Ist der Stand älter als 15 Minuten, wird der Statuspunkt rot: Dann ist der Rechner offline.</li>
     </ul>
@@ -185,6 +220,21 @@ li { margin: 4px 0; max-width: 75ch; }
     rowsOrEmpty($('t-trader'), s.liste_trader || [], 9, 'Noch kein Trader mit Aktivität.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.trader), el('td', 'num', d.rang), el('td', 'num', d.signale), el('td', 'num', d.ausgefuehrt), el('td', 'num', d.abgeschlossen), el('td', 'num', d.offen),
         el('td', 'num', de(d.rendite_pct, 2) + ' %'), el('td', 'num', de(d.drawdown_pct, 2) + ' %'), pill(d.status, d.status === 'qualifiziert' ? 'ok' : 'muted')); return tr; });
+    $('a2-coins').textContent = s.a2_coins != null ? de(s.a2_coins) : '—';
+    const signed = (v, digits, unit) => (v > 0 ? '+' : '') + de(v, digits) + unit;
+    const cls = (v) => 'num ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
+    $('strats').replaceChildren(...(s.liste_strategien || []).map((d) => { const c = el('div', 'card strat');
+      const ret = el('div', 'ret ' + (d.rendite_pct > 0 ? 'pos' : d.rendite_pct < 0 ? 'neg' : ''), signed(d.rendite_pct, 2, ' %'));
+      c.append(el('div', 'name', d.strategie), el('div', 'idea', d.idee), ret, el('div', 'meta', `Konto ${de(d.konto_usd, 2)} USD`),
+        el('div', 'meta', `${d.offen} offen · ${d.abgeschlossen} abgeschlossen` + (d.trefferquote_pct != null ? ` · ${d.trefferquote_pct} % Gewinner` : ''))); return c; }));
+    rowsOrEmpty($('t-pos'), s.liste_positionen || [], 6, 'Gerade keine offene Papier-Position.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', 'mono', d.gekauft), el('td', cls(d.stand_pct), signed(d.stand_pct, 1, ' %')), el('td', null, d.grund)); return tr; });
+    rowsOrEmpty($('t-sig'), s.liste_signale || [], 6, 'Noch kein Signal.', (d) => { const tr = el('tr');
+      tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), pill(d.aktion, d.aktion === 'kaufen' ? 'buy' : 'sell'), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', null, d.detail)); return tr; });
+    $('bt-coins').textContent = s.bt_coins ? de(s.bt_coins) : '—'; $('bt-stand').textContent = s.bt_stand || 'noch nicht gerechnet';
+    rowsOrEmpty($('t-bt'), s.liste_backtest || [], 8, 'Die erste Rückrechnung läuft etwa zehn Minuten nach dem Start des Agenten.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.strategie), el('td', 'num', de(d.stop) + ' %'), el('td', 'num', '+' + de(d.ziel) + ' %'), el('td', 'num', d.trades), el('td', 'num', de(d.trefferquote_pct) + ' %'),
+        el('td', cls(d.schnitt_pct), signed(d.schnitt_pct, 2, ' %')), el('td', cls(d.summe_usd), signed(d.summe_usd, 2, ' USD')), pill(d.aktuell ? 'läuft live' : 'Alternative', d.aktuell ? 'ok' : 'muted')); return tr; });
     chart(); freshness();
   }
   async function load() {
