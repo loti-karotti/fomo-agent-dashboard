@@ -133,9 +133,15 @@ li { margin: 4px 0; max-width: 75ch; }
   <section class="card">
     <h2>Lerngehirn</h2>
     <p class="sub" id="lg-status">—</p>
-    <div class="scroll"><table><thead><tr><th>Lernkonto</th><th class="num">Ziel</th><th class="num">Stop</th><th class="num">Heute</th><th class="num">Gesamt</th><th class="num">Schnitt je Trade</th><th>Vom Lerngehirn gewählt</th></tr></thead><tbody id="t-tiers"></tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>Lernkonto</th><th class="num">Ziel</th><th class="num">Stop</th><th class="num">Haltezeit</th><th class="num">Heute</th><th class="num">Gesamt</th><th class="num">Schnitt je Trade</th><th>Vom Lerngehirn gewählt</th></tr></thead><tbody id="t-tiers"></tbody></table></div>
     <p class="sub" style="margin-top:14px">Was das Lerngehirn aus den Lernkonten ableitet: der bisherige Durchschnitt je Kaufbedingung, bei wenigen Beispielen bewusst Richtung null gedämpft. Grün heißt: unter dieser Bedingung liefen Käufe bisher besser.</p>
     <div class="scroll"><table><thead><tr><th>Bedingung beim Kauf</th><th>Ausprägung</th><th class="num">Beispiele</th><th class="num">Erfahrungswert</th></tr></thead><tbody id="t-beliefs"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Selbstprüfung</h2>
+    <p class="sub">Der Agent prüft seine Lernkonten alle zehn Minuten selbst. Verliert ein Konto nach Kosten, rechnet er andere Ziele, Stops und Haltezeiten an allen aufgezeichneten Käufen nach. Übernommen wird eine Variante nur, wenn sie auch auf den neueren, zurückgehaltenen Trades klar besser ist.</p>
+    <div class="scroll"><table><thead><tr><th>Zeit</th><th>Konto</th><th>Befund</th><th>Beste Variante</th><th>Test</th><th>Entscheidung</th></tr></thead><tbody id="t-check"></tbody></table></div>
   </section>
 
   <section class="strats" id="strats"></section>
@@ -260,8 +266,10 @@ li { margin: 4px 0; max-width: 75ch; }
     $('lg-status').textContent = s.lg_trainiert == null ? 'Das Lerngehirn startet mit dem nächsten Durchlauf.'
       : s.lg_aktiv ? `Aktiv seit genug Beispielen: stützt sich auf ${de(s.lg_trainiert)} abgeschlossene Lern-Trades, kauft nur bei positivem Erfahrungswert und nutzt die Marge von „${s.lg_stufe}“. Neu berechnet ${s.lg_stand}.`
       : `Sammelt noch Beispiele: ${de(s.lg_trainiert)} von ${de(s.lg_noetig)} abgeschlossenen Lern-Trades. Erst dann fängt es an, selbst zu kaufen.`;
-    rowsOrEmpty($('t-tiers'), s.liste_stufen || [], 7, 'Noch keine Lernkonten.', (d) => { const tr = el('tr');
-      tr.append(el('td', null, d.stufe), el('td', 'num', '+' + de(d.ziel_pct) + ' %'), el('td', 'num', de(d.stop_pct) + ' %'), el('td', 'num', d.heute), el('td', 'num', d.trades),
+    rowsOrEmpty($('t-check'), s.liste_pruefung || [], 6, 'Noch keine Prüfung: Ein Lernkonto wird erst ab 20 abgeschlossenen Trades beurteilt.', (d) => { const tr = el('tr');
+      tr.append(el('td', 'mono', d.zeit), el('td', null, d.stufe), el('td', null, d.befund), el('td', null, d.variante), el('td', null, d.test), pill(d.urteil, d.uebernommen ? 'ok' : 'muted')); return tr; });
+    rowsOrEmpty($('t-tiers'), s.liste_stufen || [], 8, 'Noch keine Lernkonten.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.stufe), el('td', 'num', '+' + de(d.ziel_pct) + ' %'), el('td', 'num', de(d.stop_pct) + ' %'), el('td', 'num', d.haltezeit || '—'), el('td', 'num', d.heute), el('td', 'num', d.trades),
         el('td', d.schnitt_pct == null ? 'num' : cls(d.schnitt_pct), d.schnitt_pct == null ? '—' : signed(d.schnitt_pct, 2, ' %')), d.gewaehlt ? pill('aktuelle Wahl', 'ok') : el('td', null, '')); return tr; });
     rowsOrEmpty($('t-beliefs'), s.liste_glauben || [], 4, 'Noch keine abgeschlossenen Lern-Trades.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.merkmal), el('td', null, d.auspraegung), el('td', 'num', d.trades), el('td', cls(d.wert_pct), signed(d.wert_pct, 2, ' %'))); return tr; });
