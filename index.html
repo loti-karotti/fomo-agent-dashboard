@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Fomo-Agent Live</title>
+<style>
+/* Layout: status header, window progress, KPI grid, hourly chart, two tables. Dark neon-on-glass look. */
+:root { color-scheme: dark; --bg: #070a14; --panel: #0e1424; --line: #1e2942; --fg: #e8eefc; --muted: #8b98b8;
+  --a: #22d3ee; --b: #8b5cf6; --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  --grad: linear-gradient(100deg, var(--a), var(--b)); --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--sans);
+  padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background-image: radial-gradient(60% 420px at 12% 0%, rgba(34,211,238,.16), transparent 70%), radial-gradient(50% 380px at 92% 4%, rgba(139,92,246,.18), transparent 70%),
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: auto, auto, 44px 44px, 44px 44px; background-repeat: no-repeat, no-repeat, repeat, repeat; }
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 18px; }
+.wrap > * { min-width: 0; }
+.eyebrow { font: 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 6px 0 4px; font-weight: 600; font-size: clamp(2.1rem, 7vw, 3.4rem); line-height: 1.05; letter-spacing: -.02em;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; width: fit-content; }
+.lage { margin: 0; font-size: 1.15rem; max-width: 60ch; text-wrap: balance; }
+.status { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: 12px var(--mono); color: var(--muted); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.ok { background: var(--ok); box-shadow: 0 0 0 4px rgba(52,211,153,.22), 0 0 14px var(--ok); }
+.dot.bad { background: var(--bad); box-shadow: 0 0 0 4px rgba(248,113,113,.22); }
+@media (prefers-reduced-motion: no-preference) { .dot.ok { animation: pulse 2.4s ease-in-out infinite; } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(52,211,153,.06), 0 0 14px var(--ok); } }
+.card { background: linear-gradient(var(--panel), var(--panel)) padding-box, linear-gradient(135deg, rgba(34,211,238,.55), var(--line) 45%, rgba(139,92,246,.55)) border-box;
+  border: 1px solid transparent; border-radius: 14px; padding: 18px; }
+h2 { margin: 0 0 4px; font-size: 1.05rem; font-weight: 600; }
+.sub { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 12px var(--mono); color: var(--muted); }
+.row b { color: var(--fg); font-weight: 500; }
+.window { display: grid; gap: 10px; }
+.track { height: 12px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.fill { height: 100%; min-width: 6px; width: 0; border-radius: 99px; background: var(--grad); box-shadow: 0 0 16px rgba(139,92,246,.7); transition: width .6s ease; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpi { display: grid; gap: 4px; align-content: start; }
+.kpi .label { font: 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.kpi .value { font-size: 2.5rem; font-weight: 300; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi .note { font-size: 12.5px; color: var(--muted); }
+.kpi.lead .value { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; width: fit-content; font-weight: 500; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.chart { position: relative; min-height: 230px; }
+.chart svg { display: block; width: 100%; height: 230px; }
+.chart text { fill: var(--muted); font: 11px var(--mono); }
+.tip { position: absolute; pointer-events: none; padding: 8px 10px; border-radius: 8px; background: #151d33; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,.5); font-size: 12.5px; white-space: nowrap; z-index: 3; }
+.tip b { display: block; margin-bottom: 2px; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font: 11.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid rgba(30,41,66,.6); vertical-align: top; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.mono { font-family: var(--mono); white-space: nowrap; font-size: 13px; }
+.empty { color: var(--muted); text-align: center; padding: 22px 10px; }
+.pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 12px; white-space: nowrap; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.muted { color: var(--muted); } .pill.buy { color: var(--a); } .pill.sell { color: #a78bfa; }
+details { color: var(--muted); font-size: 13px; }
+summary { cursor: pointer; color: var(--fg); }
+li { margin: 4px 0; max-width: 75ch; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Fomo Top 100 · Paper Trading · <span id="phase">—</span></div>
+    <h1>Fomo-Agent</h1>
+    <p class="lage" id="lage">Lade den aktuellen Stand …</p>
+    <div class="status"><span class="dot" id="dot"></span><span id="dienste">—</span><span>· Stand <span id="stand">—</span></span><span>· <span id="alter">—</span></span></div>
+  </header>
+
+  <section class="card window">
+    <div class="row"><span>Start <b id="start">—</b></span><span>Ende <b id="ende">—</b></span></div>
+    <div class="track" role="img" aria-label="Fortschritt des Beobachtungsfensters"><div class="fill" id="fill"></div></div>
+    <div class="row"><span><b id="pct">—</b> des Fensters vorbei</span><span>noch <b id="rest">—</b></span></div>
+  </section>
+
+  <section class="kpis">
+    <div class="card kpi lead"><span class="label">Trades der Top 100</span><span class="value" id="k-trades">—</span><span class="note">größere Käufe und Verkäufe seit dem Start</span></div>
+    <div class="card kpi"><span class="label">Belegt</span><span class="value" id="k-belegt">—</span><span class="note">per Blockchain bestätigt und ausgewertet</span></div>
+    <div class="card kpi"><span class="label">Demo-Ausführungen</span><span class="value" id="k-demo_ausfuehrungen">—</span><span class="note">Käufe und Verkäufe mit Papiergeld</span></div>
+    <div class="card kpi"><span class="label">Offene Positionen</span><span class="value" id="k-offene_positionen">—</span><span class="note">im Demokonto, über alle Trader</span></div>
+    <div class="card kpi"><span class="label">Kandidaten</span><span class="value" id="k-kandidaten">—</span><span class="note">erfüllen alle Regeln, höchstens 5</span></div>
+    <div class="card kpi"><span class="label">Offline</span><span class="value" id="k-offline_min">—</span><span class="note">Minuten ohne Internet, Signale daraus gelten als verspätet</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Trades pro Stunde</h2>
+    <p class="sub">Jede Säule ist eine Stunde seit dem Start. Der helle Hintergrund zeigt Zeiten ohne Internet.</p>
+    <div class="legend"><span><i style="background:var(--a)"></i>belegt</span><span><i style="background:#56618a"></i>übersprungen (kein Meme-Coin)</span><span><i style="background:var(--warn)"></i>nicht belegbar</span><span><i style="background:rgba(255,255,255,.16)"></i>offline</span></div>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section class="card">
+    <h2>Trades der Top 100</h2>
+    <p class="sub">Neueste zuerst. Belegt heißt: Der Wallet-Bestand vor und nach dem Trade ist auf der Blockchain nachgewiesen.</p>
+    <div class="scroll"><table><thead><tr><th>Zeit</th><th>Trader</th><th class="num">Rang</th><th>Seite</th><th>Token</th><th>Chain</th><th>Status</th><th>Was passiert ist</th></tr></thead><tbody id="t-trades"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Trader mit Aktivität</h2>
+    <p class="sub">Ergebnis der Erstkurs-Strategie mit 10.000 USD Papiergeld pro Trader. Für die Watchlist braucht ein Trader mindestens drei abgeschlossene Trades.</p>
+    <div class="scroll"><table><thead><tr><th>Trader</th><th class="num">Rang</th><th class="num">Signale</th><th class="num">Ausgeführt</th><th class="num">Abgeschlossen</th><th class="num">Offen</th><th class="num">Rendite</th><th class="num">Drawdown</th><th>Status</th></tr></thead><tbody id="t-trader"></tbody></table></div>
+  </section>
+
+  <details>
+    <summary>Was diese Zahlen bedeuten und wo ihre Grenzen liegen</summary>
+    <ul>
+      <li>Die 100 Trader sind die Allzeit-Rangliste von Fomo, eingefroren beim Start. Gehandelt wird nur mit Papiergeld, echtes Geld bewegt der Agent nie. Die Seite ist keine Anlageempfehlung.</li>
+      <li>Sichtbar sind nur größere Trades, weil der Feed kleinere nicht meldet. Die Schwelle liegt bei etwa 1.400 USD Positionswert.</li>
+      <li>Ein Verkauf einer Position, die schon vor dem Start bestand, zählt als „ohne Demoposition“ und löst nichts aus.</li>
+      <li>Als Meme-Coin gilt jeder Token, der nicht auf der Ausschlussliste steht (Majors, Stablecoins und Ähnliches).</li>
+      <li>Der Rechner lädt jede Minute einen neuen Stand hoch, die Seite holt ihn selbst ab. Bis er hier erscheint, vergehen wenige Minuten. Ist der Stand älter als 15 Minuten, wird der Statuspunkt rot: Dann ist der Rechner offline.</li>
+    </ul>
+  </details>
+</div>
+<script>
+(function () {
+  const SOURCES = ['https://raw.githubusercontent.com/loti-karotti/fomo-agent-dashboard/data/data.json', 'data.json'];
+  const $ = (id) => document.getElementById(id);
+  const de = (n, digits) => Number(n).toLocaleString('de-DE', {maximumFractionDigits: digits == null ? 1 : digits});
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const pill = (text, cls) => { const td = el('td'); td.append(el('span', 'pill ' + cls, text)); return td; };
+  let state = null;
+
+  function age() { return state && state.stand_iso ? (Date.now() - Date.parse(state.stand_iso)) / 60000 : null; }
+  function freshness() {
+    const a = age(), fresh = a != null && a < 15, running = state && +state.dienste === 2;
+    $('alter').textContent = a == null ? '—' : a < 1.5 ? 'gerade eben aktualisiert' : a < 90 ? `vor ${Math.round(a)} Minuten aktualisiert` : `vor ${de(a / 60, 1)} Stunden aktualisiert`;
+    $('alter').style.color = a != null && !fresh ? 'var(--warn)' : '';
+    $('dot').className = 'dot' + (state ? (running && fresh ? ' ok' : ' bad') : '');
+    if (state) $('dienste').textContent = !fresh ? 'Rechner offline, letzter bekannter Stand' : 'Beobachtung ' + state.dienste_text;
+  }
+  function rowsOrEmpty(body, rows, cols, text, make) {
+    if (!rows.length) { const tr = el('tr'), td = el('td', 'empty', text); td.colSpan = cols; tr.append(td); body.replaceChildren(tr); return; }
+    body.replaceChildren(...rows.map(make));
+  }
+  function chart() {
+    const box = $('chart'), data = (state && state.liste_stunden) || [];
+    const W = Math.max(box.clientWidth, 260), H = 230, m = {t: 10, r: 8, b: 26, l: 28}, NS = 'http://www.w3.org/2000/svg';
+    const keys = [['belegt', 'var(--a)'], ['uebersprungen', '#56618a'], ['nicht_belegbar', 'var(--warn)']];
+    const total = (d) => keys.reduce((s, k) => s + (+d[k[0]] || 0), 0);
+    const top = Math.max(4, ...data.map(total)), step = (W - m.l - m.r) / Math.max(data.length, 1), bw = Math.min(step * 0.7, 46);
+    const y = (v) => H - m.b - v / top * (H - m.b - m.t);
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Trades der Top 100 pro Stunde nach Status, mit Offline-Zeiten');
+    const add = (tag, attrs, text) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; svg.append(n); return n; };
+    const ticks = top <= 8 ? top : 4;
+    for (let i = 0; i <= ticks; i++) { const v = Math.round(top / ticks * i);
+      add('line', {x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: 'rgba(255,255,255,.07)'}); add('text', {x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end'}, v); }
+    const every = Math.max(1, Math.ceil(data.length / Math.max(2, Math.floor((W - m.l - m.r) / 110))));
+    const tip = el('div', 'tip'); tip.hidden = true;
+    data.forEach((d, i) => {
+      const x0 = m.l + i * step, cx = x0 + step / 2, off = +d.offline_min || 0;
+      if (off > 0) add('rect', {x: x0, y: m.t, width: step, height: H - m.b - m.t, fill: '#fff', opacity: 0.04 + 0.12 * Math.min(1, off / 60)});
+      let base = 0;
+      keys.forEach(([k, color]) => { const v = +d[k] || 0; if (!v) return;
+        add('rect', {x: cx - bw / 2, y: y(base + v), width: bw, height: y(base) - y(base + v), rx: Math.min(4, bw / 3), fill: color}); base += v; });
+      if (i % every === 0) add('text', {x: cx, y: H - 8, 'text-anchor': i === 0 ? 'start' : cx > W - 60 ? 'end' : 'middle'}, d.stunde);
+      const hit = add('rect', {x: x0, y: m.t, width: step, height: H - m.b - m.t, fill: 'transparent'});
+      const show = (ev) => { tip.replaceChildren(el('b', null, d.stunde + ' Uhr'), el('div', null, `${+d.belegt || 0} belegt · ${+d.uebersprungen || 0} übersprungen · ${+d.nicht_belegbar || 0} nicht belegbar`), el('div', null, off ? `${off} Minuten offline` : 'durchgehend online'));
+        tip.hidden = false; const b = box.getBoundingClientRect();
+        tip.style.left = Math.min(Math.max(ev.clientX - b.left + 12, 0), Math.max(0, b.width - tip.offsetWidth - 4)) + 'px';
+        tip.style.top = Math.max(0, ev.clientY - b.top - tip.offsetHeight - 10) + 'px'; };
+      hit.addEventListener('pointerenter', show); hit.addEventListener('pointermove', show); hit.addEventListener('pointerleave', () => { tip.hidden = true; });
+    });
+    box.replaceChildren(svg, tip);
+  }
+  function render() {
+    const s = state; if (!s) return;
+    for (const id of ['phase', 'lage', 'stand', 'start', 'ende']) $(id).textContent = s[id === 'phase' ? 'abschluss' : id] ?? '—';
+    $('fill').style.width = Math.max(0, Math.min(100, +s.fortschritt_pct || 0)) + '%';
+    $('pct').textContent = de(s.fortschritt_pct) + ' %'; $('rest').textContent = de(s.rest_h) + ' Stunden';
+    for (const k of ['trades', 'belegt', 'demo_ausfuehrungen', 'offene_positionen', 'kandidaten', 'offline_min']) $('k-' + k).textContent = de(s[k]);
+    rowsOrEmpty($('t-trades'), s.liste_trades || [], 8, 'Noch kein Trade der Top 100 im Beobachtungsfenster.', (d) => { const tr = el('tr');
+      tr.append(el('td', 'mono', d.zeit), el('td', null, d.trader), el('td', 'num', d.rang), pill(d.seite, d.seite === 'Kauf' ? 'buy' : 'sell'),
+        el('td', null, d.token ? '$' + d.token : '—'), el('td', 'mono', d.chain || '—'), pill(d.status, d.status === 'belegt' ? 'ok' : d.status === 'nicht belegbar' ? 'warn' : 'muted'), el('td', null, d.detail)); return tr; });
+    rowsOrEmpty($('t-trader'), s.liste_trader || [], 9, 'Noch kein Trader mit Aktivität.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.trader), el('td', 'num', d.rang), el('td', 'num', d.signale), el('td', 'num', d.ausgefuehrt), el('td', 'num', d.abgeschlossen), el('td', 'num', d.offen),
+        el('td', 'num', de(d.rendite_pct, 2) + ' %'), el('td', 'num', de(d.drawdown_pct, 2) + ' %'), pill(d.status, d.status === 'qualifiziert' ? 'ok' : 'muted')); return tr; });
+    chart(); freshness();
+  }
+  async function load() {
+    for (const url of SOURCES) {
+      try {
+        const reply = await fetch(url + '?t=' + Date.now(), {cache: 'no-store'});
+        if (!reply.ok) continue;
+        const next = await reply.json();
+        if (!state || !next.stand_iso || next.stand_iso >= state.stand_iso) state = next;
+        render(); return;
+      } catch (error) { /* try the next source */ }
+    }
+    if (!state) $('lage').textContent = 'Der aktuelle Stand konnte nicht geladen werden. Die Seite versucht es gleich wieder.';
+    freshness();
+  }
+  load(); setInterval(load, 30000); setInterval(freshness, 15000);
+  let timer; window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(chart, 150); });
+})();
+</script>
+</body>
+</html>
