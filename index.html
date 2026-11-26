@@ -122,7 +122,12 @@ li { margin: 4px 0; max-width: 75ch; }
   </section>
 
   <div class="divider"><h2>Agent 2 · Signale</h2></div>
-  <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt vier Regelwerke mit je 10.000 USD Papiergeld durch. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
+  <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt fünf Regelwerke mit je 10.000 USD Papiergeld durch. „Erkundung“ ist ein Lernkonto, das absichtlich oft kauft, um schnell Beispiele zu sammeln. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
+
+  <section class="card window">
+    <div class="row"><span>Lernfortschritt</span><span><b id="a2-done">—</b> von <b id="a2-goal">—</b> abgeschlossenen Demo-Trades</span></div>
+    <div class="track" role="img" aria-label="Fortschritt zum Ziel abgeschlossener Demo-Trades"><div class="fill" id="a2-fill"></div></div>
+  </section>
 
   <section class="strats" id="strats"></section>
 
@@ -136,6 +141,18 @@ li { margin: 4px 0; max-width: 75ch; }
     <h2>Letzte Signale</h2>
     <p class="sub">Neueste zuerst: jedes Kauf- und Verkaufssignal mit Begründung.</p>
     <div class="scroll"><table><thead><tr><th>Zeit</th><th>Regelwerk</th><th>Signal</th><th>Token</th><th>Chain</th><th>Begründung</th></tr></thead><tbody id="t-sig"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Abgeschlossene Demo-Trades</h2>
+    <p class="sub">Neueste zuerst. Das Ergebnis enthält die Kosten für Kauf und Verkauf.</p>
+    <div class="scroll"><table><thead><tr><th>Verkauft</th><th>Regelwerk</th><th>Token</th><th>Chain</th><th class="num">Ergebnis</th><th class="num">in USD</th><th>Verkaufsgrund</th></tr></thead><tbody id="t-done"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Was die bisherigen Trades zeigen</h2>
+    <p class="sub">Ergebnis der abgeschlossenen Demo-Trades nach Regelwerk und nach den Bedingungen beim Kauf. Erst ab etwa 20 Trades je Zeile ist eine Zahl halbwegs belastbar. Der Agent ändert seine Regeln nicht selbst, das entscheidest du.</p>
+    <div class="scroll"><table><thead><tr><th>Merkmal</th><th>Ausprägung</th><th class="num">Trades</th><th class="num">Gewinner</th><th class="num">Schnitt je Trade</th><th>Belastbar</th></tr></thead><tbody id="t-learn"></tbody></table></div>
   </section>
 
   <section class="card">
@@ -231,6 +248,12 @@ li { margin: 4px 0; max-width: 75ch; }
       tr.append(el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', 'mono', d.gekauft), el('td', cls(d.stand_pct), signed(d.stand_pct, 1, ' %')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-sig'), s.liste_signale || [], 6, 'Noch kein Signal.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), pill(d.aktion, d.aktion === 'kaufen' ? 'buy' : 'sell'), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', null, d.detail)); return tr; });
+    $('a2-done').textContent = de(s.a2_abgeschlossen || 0); $('a2-goal').textContent = de(s.a2_ziel || 30);
+    $('a2-fill').style.width = Math.min(100, (s.a2_abgeschlossen || 0) / (s.a2_ziel || 30) * 100) + '%';
+    rowsOrEmpty($('t-done'), s.liste_abgeschlossen || [], 7, 'Noch kein abgeschlossener Demo-Trade.', (d) => { const tr = el('tr');
+      tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', cls(d.ergebnis_pct), signed(d.ergebnis_pct, 1, ' %')), el('td', cls(d.ergebnis_usd), signed(d.ergebnis_usd, 2, '')), el('td', null, d.grund)); return tr; });
+    rowsOrEmpty($('t-learn'), s.liste_lernen || [], 6, 'Noch keine abgeschlossenen Trades zum Auswerten.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.gruppe), el('td', null, d.auspraegung), el('td', 'num', d.trades), el('td', 'num', de(d.gewinner_pct) + ' %'), el('td', cls(d.schnitt_pct), signed(d.schnitt_pct, 2, ' %')), pill(d.belastbar, d.belastbar === 'ja' ? 'ok' : 'muted')); return tr; });
     $('bt-coins').textContent = s.bt_coins ? de(s.bt_coins) : '—'; $('bt-stand').textContent = s.bt_stand || 'noch nicht gerechnet';
     rowsOrEmpty($('t-bt'), s.liste_backtest || [], 8, 'Die erste Rückrechnung läuft etwa zehn Minuten nach dem Start des Agenten.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.strategie), el('td', 'num', de(d.stop) + ' %'), el('td', 'num', '+' + de(d.ziel) + ' %'), el('td', 'num', d.trades), el('td', 'num', de(d.trefferquote_pct) + ' %'),
