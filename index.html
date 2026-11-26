@@ -125,8 +125,9 @@ li { margin: 4px 0; max-width: 75ch; }
   <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt fünf Regelwerke mit je 10.000 USD Papiergeld durch. „Erkundung“ ist ein Lernkonto, das absichtlich oft kauft, um schnell Beispiele zu sammeln. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
 
   <section class="card window">
-    <div class="row"><span>Lernfortschritt</span><span><b id="a2-done">—</b> von <b id="a2-goal">—</b> abgeschlossenen Demo-Trades</span></div>
-    <div class="track" role="img" aria-label="Fortschritt zum Ziel abgeschlossener Demo-Trades"><div class="fill" id="a2-fill"></div></div>
+    <div class="row"><span>Demo-Trades heute</span><span><b id="a2-done">—</b> abgeschlossen, Ziel 50 bis <b id="a2-goal">—</b> pro Tag</span></div>
+    <div class="track" role="img" aria-label="Fortschritt zum Tagesziel abgeschlossener Demo-Trades"><div class="fill" id="a2-fill"></div></div>
+    <div class="row"><span>insgesamt <b id="a2-total">—</b> seit dem Start</span><span>aktuelles Tempo: etwa <b id="a2-tempo">—</b> pro Tag</span></div>
   </section>
 
   <section class="strats" id="strats"></section>
@@ -248,8 +249,9 @@ li { margin: 4px 0; max-width: 75ch; }
       tr.append(el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', 'mono', d.gekauft), el('td', cls(d.stand_pct), signed(d.stand_pct, 1, ' %')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-sig'), s.liste_signale || [], 6, 'Noch kein Signal.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), pill(d.aktion, d.aktion === 'kaufen' ? 'buy' : 'sell'), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', null, d.detail)); return tr; });
-    $('a2-done').textContent = de(s.a2_abgeschlossen || 0); $('a2-goal').textContent = de(s.a2_ziel || 30);
-    $('a2-fill').style.width = Math.min(100, (s.a2_abgeschlossen || 0) / (s.a2_ziel || 30) * 100) + '%';
+    $('a2-done').textContent = de(s.a2_heute || 0); $('a2-goal').textContent = de(s.a2_ziel || 100);
+    $('a2-total').textContent = de(s.a2_abgeschlossen || 0); $('a2-tempo').textContent = s.a2_tempo != null ? de(s.a2_tempo) : '—';
+    $('a2-fill').style.width = Math.min(100, (s.a2_heute || 0) / (s.a2_ziel || 100) * 100) + '%';
     rowsOrEmpty($('t-done'), s.liste_abgeschlossen || [], 7, 'Noch kein abgeschlossener Demo-Trade.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', cls(d.ergebnis_pct), signed(d.ergebnis_pct, 1, ' %')), el('td', cls(d.ergebnis_usd), signed(d.ergebnis_usd, 2, '')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-learn'), s.liste_lernen || [], 6, 'Noch keine abgeschlossenen Trades zum Auswerten.', (d) => { const tr = el('tr');
