@@ -122,12 +122,20 @@ li { margin: 4px 0; max-width: 75ch; }
   </section>
 
   <div class="divider"><h2>Agent 2 · Signale</h2></div>
-  <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt fünf Regelwerke mit je 10.000 USD Papiergeld durch. „Erkundung“ ist ein Lernkonto, das absichtlich oft kauft, um schnell Beispiele zu sammeln. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
+  <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt zehn Konten mit je 10.000 USD Papiergeld durch: vier feste Regelwerke, fünf Lernkonten mit unterschiedlich hohen Gewinnzielen und das Lerngehirn, das aus den Lernkonten ableitet, wann und mit welcher Marge es kauft. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
 
   <section class="card window">
-    <div class="row"><span>Demo-Trades heute</span><span><b id="a2-done">—</b> abgeschlossen, Ziel 50 bis <b id="a2-goal">—</b> pro Tag</span></div>
+    <div class="row"><span>Demo-Trades heute</span><span><b id="a2-done">—</b> abgeschlossen, Ziel 200 bis <b id="a2-goal">—</b> pro Tag</span></div>
     <div class="track" role="img" aria-label="Fortschritt zum Tagesziel abgeschlossener Demo-Trades"><div class="fill" id="a2-fill"></div></div>
     <div class="row"><span>insgesamt <b id="a2-total">—</b> seit dem Start</span><span>aktuelles Tempo: etwa <b id="a2-tempo">—</b> pro Tag</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Lerngehirn</h2>
+    <p class="sub" id="lg-status">—</p>
+    <div class="scroll"><table><thead><tr><th>Lernkonto</th><th class="num">Ziel</th><th class="num">Stop</th><th class="num">Heute</th><th class="num">Gesamt</th><th class="num">Schnitt je Trade</th><th>Vom Lerngehirn gewählt</th></tr></thead><tbody id="t-tiers"></tbody></table></div>
+    <p class="sub" style="margin-top:14px">Was das Lerngehirn aus den Lernkonten ableitet: der bisherige Durchschnitt je Kaufbedingung, bei wenigen Beispielen bewusst Richtung null gedämpft. Grün heißt: unter dieser Bedingung liefen Käufe bisher besser.</p>
+    <div class="scroll"><table><thead><tr><th>Bedingung beim Kauf</th><th>Ausprägung</th><th class="num">Beispiele</th><th class="num">Erfahrungswert</th></tr></thead><tbody id="t-beliefs"></tbody></table></div>
   </section>
 
   <section class="strats" id="strats"></section>
@@ -168,7 +176,7 @@ li { margin: 4px 0; max-width: 75ch; }
       <li>Die 100 Trader sind die Allzeit-Rangliste von Fomo, eingefroren beim Start. Gehandelt wird nur mit Papiergeld, echtes Geld bewegt der Agent nie. Die Seite ist keine Anlageempfehlung.</li>
       <li>Größere Trades kommen in Echtzeit über den Fomo-Feed. Kleinere Trades erfasst der Agent seit Donnerstag, 12:00 Uhr, zusätzlich direkt über die Wallets der Trader auf der Blockchain, meist mit ein bis zwei Minuten Verzögerung.</li>
       <li>Ein Verkauf einer Position, die schon vor dem Start bestand, zählt als „ohne Demoposition“ und löst nichts aus.</li>
-      <li>Agent 2 ist ein Experiment mit Papiergeld und keine Anlageempfehlung. Seine Regelwerke sind einfache, feste Regeln, kein lernendes Modell.</li>
+      <li>Agent 2 ist ein Experiment mit Papiergeld und keine Anlageempfehlung. Das Lerngehirn rechnet einfache Durchschnitte aus den bisherigen Demo-Trades. Wenige Tage Daten können keine Strategie beweisen.</li>
       <li>Als Meme-Coin gilt jeder Token, der nicht auf der Ausschlussliste steht (Majors, Stablecoins und Ähnliches).</li>
       <li>Der Rechner lädt jede Minute einen neuen Stand hoch, die Seite holt ihn selbst ab. Bis er hier erscheint, vergehen wenige Minuten. Ist der Stand älter als 15 Minuten, wird der Statuspunkt rot: Dann ist der Rechner offline.</li>
     </ul>
@@ -249,9 +257,17 @@ li { margin: 4px 0; max-width: 75ch; }
       tr.append(el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', 'mono', d.gekauft), el('td', cls(d.stand_pct), signed(d.stand_pct, 1, ' %')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-sig'), s.liste_signale || [], 6, 'Noch kein Signal.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), pill(d.aktion, d.aktion === 'kaufen' ? 'buy' : 'sell'), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', null, d.detail)); return tr; });
-    $('a2-done').textContent = de(s.a2_heute || 0); $('a2-goal').textContent = de(s.a2_ziel || 100);
+    $('lg-status').textContent = s.lg_trainiert == null ? 'Das Lerngehirn startet mit dem nächsten Durchlauf.'
+      : s.lg_aktiv ? `Aktiv seit genug Beispielen: stützt sich auf ${de(s.lg_trainiert)} abgeschlossene Lern-Trades, kauft nur bei positivem Erfahrungswert und nutzt die Marge von „${s.lg_stufe}“. Neu berechnet ${s.lg_stand}.`
+      : `Sammelt noch Beispiele: ${de(s.lg_trainiert)} von ${de(s.lg_noetig)} abgeschlossenen Lern-Trades. Erst dann fängt es an, selbst zu kaufen.`;
+    rowsOrEmpty($('t-tiers'), s.liste_stufen || [], 7, 'Noch keine Lernkonten.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.stufe), el('td', 'num', '+' + de(d.ziel_pct) + ' %'), el('td', 'num', de(d.stop_pct) + ' %'), el('td', 'num', d.heute), el('td', 'num', d.trades),
+        el('td', d.schnitt_pct == null ? 'num' : cls(d.schnitt_pct), d.schnitt_pct == null ? '—' : signed(d.schnitt_pct, 2, ' %')), d.gewaehlt ? pill('aktuelle Wahl', 'ok') : el('td', null, '')); return tr; });
+    rowsOrEmpty($('t-beliefs'), s.liste_glauben || [], 4, 'Noch keine abgeschlossenen Lern-Trades.', (d) => { const tr = el('tr');
+      tr.append(el('td', null, d.merkmal), el('td', null, d.auspraegung), el('td', 'num', d.trades), el('td', cls(d.wert_pct), signed(d.wert_pct, 2, ' %'))); return tr; });
+    $('a2-done').textContent = de(s.a2_heute || 0); $('a2-goal').textContent = de(s.a2_ziel || 250);
     $('a2-total').textContent = de(s.a2_abgeschlossen || 0); $('a2-tempo').textContent = s.a2_tempo != null ? de(s.a2_tempo) : '—';
-    $('a2-fill').style.width = Math.min(100, (s.a2_heute || 0) / (s.a2_ziel || 100) * 100) + '%';
+    $('a2-fill').style.width = Math.min(100, (s.a2_heute || 0) / (s.a2_ziel || 250) * 100) + '%';
     rowsOrEmpty($('t-done'), s.liste_abgeschlossen || [], 7, 'Noch kein abgeschlossener Demo-Trade.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', cls(d.ergebnis_pct), signed(d.ergebnis_pct, 1, ' %')), el('td', cls(d.ergebnis_usd), signed(d.ergebnis_usd, 2, '')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-learn'), s.liste_lernen || [], 6, 'Noch keine abgeschlossenen Trades zum Auswerten.', (d) => { const tr = el('tr');
