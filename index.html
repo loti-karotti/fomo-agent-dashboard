@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Fomo-Agent Live</title>
+<title>Fomo-Agent · Paper-Trading</title>
 <style>
 /* Layout: status header, window progress, KPI grid, hourly chart, two tables. Dark neon-on-glass look. */
 :root { color-scheme: dark; --bg: #070a14; --panel: #0e1424; --line: #1e2942; --fg: #e8eefc; --muted: #8b98b8;
@@ -81,7 +81,7 @@ li { margin: 4px 0; max-width: 75ch; }
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Fomo Top 100 · Paper Trading · <span id="phase">—</span></div>
+    <div class="eyebrow">Fomo · Paper-Trading · <span id="phase">—</span></div>
     <h1>Fomo-Agent</h1>
     <p class="lage" id="lage">Lade den aktuellen Stand …</p>
     <div class="status"><span class="dot" id="dot"></span><span id="dienste">—</span><span>· Stand <span id="stand">—</span></span><span>· <span id="alter">—</span></span></div>
@@ -94,24 +94,25 @@ li { margin: 4px 0; max-width: 75ch; }
   </section>
 
   <section class="kpis">
-    <div class="card kpi lead"><span class="label">Trades der Top 100</span><span class="value" id="k-trades">—</span><span class="note">Käufe und Verkäufe seit dem Start</span></div>
-    <div class="card kpi"><span class="label">Belegt</span><span class="value" id="k-belegt">—</span><span class="note">per Blockchain bestätigt und ausgewertet</span></div>
+    <div class="card kpi lead"><span class="label">Beobachtete Trades</span><span class="value" id="k-trades">—</span><span class="note">Käufe und Verkäufe seit dem Start</span></div>
+    <div class="card kpi"><span class="label">Belegt</span><span class="value" id="k-belegt">—</span><span class="note">laut Export bestätigt</span></div>
     <div class="card kpi"><span class="label">Demo-Ausführungen</span><span class="value" id="k-demo_ausfuehrungen">—</span><span class="note">Käufe und Verkäufe mit Papiergeld</span></div>
     <div class="card kpi"><span class="label">Offene Positionen</span><span class="value" id="k-offene_positionen">—</span><span class="note">im Demokonto, über alle Trader</span></div>
     <div class="card kpi"><span class="label">Kandidaten</span><span class="value" id="k-kandidaten">—</span><span class="note">erfüllen alle Regeln, höchstens 5</span></div>
-    <div class="card kpi"><span class="label">Offline</span><span class="value" id="k-offline_min">—</span><span class="note">Minuten ohne Internet, Signale daraus gelten als verspätet</span></div>
+    <div class="card kpi"><span class="label">Gemeldete Offline-Minuten</span><span class="value" id="k-offline_min">—</span><span class="note">laut Datenexport</span></div>
   </section>
 
   <section class="card">
     <h2>Trades pro Stunde</h2>
-    <p class="sub">Jede Säule ist eine Stunde seit dem Start. Der helle Hintergrund zeigt Zeiten ohne Internet.</p>
+    <p class="sub">Jede Säule ist eine Stunde seit dem Start. Der helle Hintergrund zeigt gemeldete Offline-Zeiten.</p>
     <div class="legend"><span><i style="background:var(--a)"></i>belegt</span><span><i style="background:#56618a"></i>übersprungen (kein Meme-Coin)</span><span><i style="background:var(--warn)"></i>nicht belegbar</span><span><i style="background:rgba(255,255,255,.16)"></i>offline</span></div>
     <div class="chart" id="chart"></div>
   </section>
 
   <section class="card">
-    <h2>Trades der Top 100</h2>
-    <p class="sub">Neueste zuerst. Belegt heißt: Der Wallet-Bestand vor und nach dem Trade ist auf der Blockchain nachgewiesen.</p>
+    <h2>Trades aus der Fomo-Rangliste</h2>
+    <p class="sub" id="ranking-scope">—</p>
+    <p class="sub">Neueste zuerst. Der Export kennzeichnet belegte Trades.</p>
     <div class="scroll"><table><thead><tr><th>Zeit</th><th>Trader</th><th class="num">Rang</th><th>Seite</th><th>Token</th><th>Chain</th><th>Status</th><th>Was passiert ist</th></tr></thead><tbody id="t-trades"></tbody></table></div>
   </section>
 
@@ -122,10 +123,10 @@ li { margin: 4px 0; max-width: 75ch; }
   </section>
 
   <div class="divider"><h2>Agent 2 · Signale</h2></div>
-  <p class="intro">Der zweite Agent liest Kurs, Volumen und Kaufdruck von <b id="a2-coins">—</b> Coins, die Fomo-Trader gerade handeln, und spielt zehn Konten mit je 10.000 USD Papiergeld durch: vier feste Regelwerke, fünf Lernkonten mit unterschiedlich hohen Gewinnzielen (jede Kaufgelegenheit geht an genau ein Lernkonto, damit jedes eigene Beispiele sammelt) und das Lerngehirn, das aus den Lernkonten ableitet, wann und mit welcher Marge es kauft. Jeder Kauf sind 250 USD, Kosten von 1,5 % je Seite sind eingerechnet. Die Vergleichslinie ist „nichts tun“ mit 0 %.</p>
+  <p class="intro">Beobachtete Coins <b id="a2-coins">—</b> · Gemeldete Paper-Konten <b id="a2-accounts">—</b></p>
 
   <section class="card window">
-    <div class="row"><span>Demo-Trades heute</span><span><b id="a2-done">—</b> abgeschlossen, Ziel 250 je Lernkonto, zusammen <b id="a2-goal">—</b> pro Tag</span></div>
+    <div class="row"><span>Demo-Trades heute</span><span><b id="a2-done">—</b> abgeschlossen · Gemeldetes Tagesziel <b id="a2-goal">—</b></span></div>
     <div class="track" role="img" aria-label="Fortschritt zum Tagesziel abgeschlossener Demo-Trades"><div class="fill" id="a2-fill"></div></div>
     <div class="row"><span>insgesamt <b id="a2-total">—</b> seit dem Start</span><span>aktuelles Tempo: etwa <b id="a2-tempo">—</b> pro Tag</span></div>
   </section>
@@ -140,13 +141,13 @@ li { margin: 4px 0; max-width: 75ch; }
 
   <section class="card">
     <h2>Selbstprüfung</h2>
-    <p class="sub">Der Agent prüft seine Lernkonten alle zehn Minuten selbst. Verliert ein Konto nach Kosten, rechnet er andere Ziele, Stops und Haltezeiten an allen aufgezeichneten Käufen nach. Übernommen wird eine Variante nur, wenn sie auch auf den neueren, zurückgehaltenen Trades klar besser ist.</p>
+    <p class="sub">Der Export zeigt, welche Parameter geprüft wurden und welche Varianten übernommen wurden.</p>
     <div class="scroll"><table><thead><tr><th>Zeit</th><th>Konto</th><th>Befund</th><th>Beste Variante</th><th>Test</th><th>Entscheidung</th></tr></thead><tbody id="t-check"></tbody></table></div>
   </section>
 
   <section class="card">
     <h2>Fehlergedächtnis</h2>
-    <p class="sub">Jeder Verlust-Trade der Lernkonten wird nachträglich eingeordnet: Was ist schiefgelaufen, und was ändert der Agent deshalb? Coins, die mehrfach verloren haben, meidet er für zwei Stunden: <b id="blocked">—</b></p>
+    <p class="sub">Ausgewertete Verlust-Trades und gemeldete Token-Sperren: <b id="blocked">—</b></p>
     <div class="scroll"><table><thead><tr><th>Konto</th><th>Was schiefging</th><th class="num">Anzahl</th><th class="num">Anteil an allen Trades</th><th>Was der Agent daraus macht</th></tr></thead><tbody id="t-errors"></tbody></table></div>
   </section>
 
@@ -166,13 +167,13 @@ li { margin: 4px 0; max-width: 75ch; }
 
   <section class="card">
     <h2>Abgeschlossene Demo-Trades</h2>
-    <p class="sub">Neueste zuerst. Das Ergebnis enthält die Kosten für Kauf und Verkauf.</p>
+    <p class="sub">Letzte veröffentlichte Abschlüsse, neueste zuerst. Die Ergebnisse stammen aus dem Paper-Trading-Export.</p>
     <div class="scroll"><table><thead><tr><th>Verkauft</th><th>Regelwerk</th><th>Token</th><th>Chain</th><th class="num">Ergebnis</th><th class="num">in USD</th><th>Verkaufsgrund</th></tr></thead><tbody id="t-done"></tbody></table></div>
   </section>
 
   <section class="card">
     <h2>Was die bisherigen Trades zeigen</h2>
-    <p class="sub">Ergebnis der abgeschlossenen Demo-Trades nach Regelwerk und nach den Bedingungen beim Kauf. Erst ab etwa 20 Trades je Zeile ist eine Zahl halbwegs belastbar. Der Agent ändert seine Regeln nicht selbst, das entscheidest du.</p>
+    <p class="sub">Die Tabelle zeigt Anzahl und Ergebnis der veröffentlichten Demo-Trades unter verschiedenen Kaufbedingungen.</p>
     <div class="scroll"><table><thead><tr><th>Merkmal</th><th>Ausprägung</th><th class="num">Trades</th><th class="num">Gewinner</th><th class="num">Schnitt je Trade</th><th>Belastbar</th></tr></thead><tbody id="t-learn"></tbody></table></div>
   </section>
 
@@ -182,15 +183,25 @@ li { margin: 4px 0; max-width: 75ch; }
     <div class="scroll"><table><thead><tr><th>Regelwerk</th><th class="num">Stop</th><th class="num">Ziel</th><th class="num">Trades</th><th class="num">Trefferquote</th><th class="num">Schnitt je Trade</th><th class="num">Summe</th><th>Variante</th></tr></thead><tbody id="t-bt"></tbody></table></div>
   </section>
 
+  <div id="fa-wrap" hidden>
+  <div class="divider"><h2>Fünf-Agenten-Lauf · BTC und GOLD</h2></div>
+  <p class="intro" id="fa-intro">—</p>
+  <section class="card">
+    <h2>Konten des Fünf-Agenten-Laufs</h2>
+    <p class="sub" id="fa-status">—</p>
+    <div class="scroll"><table><thead><tr><th>Konto</th><th class="num">Abgeschlossen</th><th class="num">Realisiert</th><th class="num">Offen</th><th class="num">Kosten</th><th class="num">Max. Drawdown</th><th>Stichprobe</th></tr></thead><tbody id="t-fa"></tbody></table></div>
+  </section>
+  </div>
+
   <details>
     <summary>Was diese Zahlen bedeuten und wo ihre Grenzen liegen</summary>
     <ul>
-      <li>Die 100 Trader sind die Allzeit-Rangliste von Fomo, eingefroren beim Start. Gehandelt wird nur mit Papiergeld, echtes Geld bewegt der Agent nie. Die Seite ist keine Anlageempfehlung.</li>
+      <li>Die älteren Exporte basieren auf der eingefrorenen Allzeit-Top-100. Für neuere Exporte zeigt die Tabelle das gemeldete Ranglistenlimit.</li>
       <li>Größere Trades kommen in Echtzeit über den Fomo-Feed. Kleinere Trades erfasst der Agent seit Donnerstag, 12:00 Uhr, zusätzlich direkt über die Wallets der Trader auf der Blockchain, meist mit ein bis zwei Minuten Verzögerung.</li>
       <li>Ein Verkauf einer Position, die schon vor dem Start bestand, zählt als „ohne Demoposition“ und löst nichts aus.</li>
       <li>Agent 2 ist ein Experiment mit Papiergeld und keine Anlageempfehlung. Das Lerngehirn rechnet einfache Durchschnitte aus den bisherigen Demo-Trades. Wenige Tage Daten können keine Strategie beweisen.</li>
       <li>Als Meme-Coin gilt jeder Token, der nicht auf der Ausschlussliste steht (Majors, Stablecoins und Ähnliches).</li>
-      <li>Der Rechner lädt jede Minute einen neuen Stand hoch, die Seite holt ihn selbst ab. Bis er hier erscheint, vergehen wenige Minuten. Ist der Stand älter als 15 Minuten, wird der Statuspunkt rot: Dann ist der Rechner offline.</li>
+      <li>Ab 15 Minuten gilt der veröffentlichte Stand als veraltet. Die Anzeige beschreibt das Alter der Daten.</li>
     </ul>
   </details>
 </div>
@@ -198,18 +209,44 @@ li { margin: 4px 0; max-width: 75ch; }
 (function () {
   const SOURCES = ['https://raw.githubusercontent.com/loti-karotti/fomo-agent-dashboard/data/data.json', 'data.json'];
   const $ = (id) => document.getElementById(id);
-  const de = (n, digits) => Number(n).toLocaleString('de-DE', {maximumFractionDigits: digits == null ? 1 : digits});
+  const de = (n, digits = 1) => {
+    if (n == null || n === '' || !Number.isFinite(Number(n))) return '—';
+    return Number(n).toLocaleString('de-DE', {maximumFractionDigits: digits});
+  };
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
   const pill = (text, cls) => { const td = el('td'); td.append(el('span', 'pill ' + cls, text)); return td; };
+  const MAX_SNAPSHOT_AGE_MS = 15 * 60_000;
   let state = null;
 
-  function age() { return state && state.stand_iso ? (Date.now() - Date.parse(state.stand_iso)) / 60000 : null; }
+  function snapshotTime(snapshot) {
+    return typeof snapshot?.stand_iso === 'string' ? Date.parse(snapshot.stand_iso) : NaN;
+  }
+
+  function isUsableSnapshot(snapshot) {
+    const time = snapshotTime(snapshot);
+    if (!Number.isFinite(time) || time > Date.now() + 60_000) return false;
+    if (!Number.isInteger(snapshot.trades) || snapshot.trades < 0) return false;
+    return Object.entries(snapshot).every(([key, value]) => {
+      if (!key.startsWith('liste_') || value == null) return true;
+      return Array.isArray(value) && value.every(row => row && typeof row === 'object' && !Array.isArray(row));
+    });
+  }
+
   function freshness() {
-    const a = age(), fresh = a != null && a < 15, running = state && +state.dienste === 2;
-    $('alter').textContent = a == null ? '—' : a < 1.5 ? 'gerade eben aktualisiert' : a < 90 ? `vor ${Math.round(a)} Minuten aktualisiert` : `vor ${de(a / 60, 1)} Stunden aktualisiert`;
-    $('alter').style.color = a != null && !fresh ? 'var(--warn)' : '';
-    $('dot').className = 'dot' + (state ? (running && fresh ? ' ok' : ' bad') : '');
-    if (state) $('dienste').textContent = !fresh ? 'Rechner offline, letzter bekannter Stand' : 'Beobachtung ' + state.dienste_text;
+    if (!state) return;
+    const ageMs = Math.max(0, Date.now() - snapshotTime(state));
+    const ageMinutes = ageMs / 60_000;
+    const isCurrent = ageMs < MAX_SNAPSHOT_AGE_MS;
+    const reportedServices = de(state.dienste, 0);
+    const ageLabel = ageMinutes < 1.5 ? 'gerade eben aktualisiert'
+      : ageMinutes < 90 ? `vor ${Math.round(ageMinutes)} Minuten aktualisiert`
+      : `vor ${de(ageMinutes / 60)} Stunden aktualisiert`;
+    $('alter').textContent = ageLabel;
+    $('alter').style.color = isCurrent ? '' : 'var(--warn)';
+    $('dot').className = isCurrent ? 'dot ok' : 'dot bad';
+    let status = isCurrent ? 'Datenstand aktuell' : 'Datenstand veraltet';
+    if (reportedServices !== '—') status += ` · Gemeldete Dienste ${reportedServices}`;
+    $('dienste').textContent = status;
   }
   function rowsOrEmpty(body, rows, cols, text, make) {
     if (!rows.length) { const tr = el('tr'), td = el('td', 'empty', text); td.colSpan = cols; tr.append(td); body.replaceChildren(tr); return; }
@@ -223,7 +260,7 @@ li { margin: 4px 0; max-width: 75ch; }
     const top = Math.max(4, ...data.map(total)), step = (W - m.l - m.r) / Math.max(data.length, 1), bw = Math.min(step * 0.7, 46);
     const y = (v) => H - m.b - v / top * (H - m.b - m.t);
     const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', 'Trades der Top 100 pro Stunde nach Status, mit Offline-Zeiten');
+    svg.setAttribute('aria-label', 'Beobachtete Trades pro Stunde nach Status, mit gemeldeten Offline-Zeiten');
     const add = (tag, attrs, text) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; svg.append(n); return n; };
     const ticks = top <= 8 ? top : 4;
     for (let i = 0; i <= ticks; i++) { const v = Math.round(top / ticks * i);
@@ -238,7 +275,7 @@ li { margin: 4px 0; max-width: 75ch; }
         add('rect', {x: cx - bw / 2, y: y(base + v), width: bw, height: y(base) - y(base + v), rx: Math.min(4, bw / 3), fill: color}); base += v; });
       if (i % every === 0) add('text', {x: cx, y: H - 8, 'text-anchor': i === 0 ? 'start' : cx > W - 60 ? 'end' : 'middle'}, d.stunde);
       const hit = add('rect', {x: x0, y: m.t, width: step, height: H - m.b - m.t, fill: 'transparent'});
-      const show = (ev) => { tip.replaceChildren(el('b', null, d.stunde + ' Uhr'), el('div', null, `${+d.belegt || 0} belegt · ${+d.uebersprungen || 0} übersprungen · ${+d.nicht_belegbar || 0} nicht belegbar`), el('div', null, off ? `${off} Minuten offline` : 'durchgehend online'));
+      const show = (ev) => { tip.replaceChildren(el('b', null, d.stunde + ' Uhr'), el('div', null, `${+d.belegt || 0} belegt · ${+d.uebersprungen || 0} übersprungen · ${+d.nicht_belegbar || 0} nicht belegbar`), el('div', null, `${off} Offline-Minuten gemeldet`));
         tip.hidden = false; const b = box.getBoundingClientRect();
         tip.style.left = Math.min(Math.max(ev.clientX - b.left + 12, 0), Math.max(0, b.width - tip.offsetWidth - 4)) + 'px';
         tip.style.top = Math.max(0, ev.clientY - b.top - tip.offsetHeight - 10) + 'px'; };
@@ -252,14 +289,27 @@ li { margin: 4px 0; max-width: 75ch; }
     $('fill').style.width = Math.max(0, Math.min(100, +s.fortschritt_pct || 0)) + '%';
     $('pct').textContent = de(s.fortschritt_pct) + ' %'; $('rest').textContent = de(s.rest_h) + ' Stunden';
     for (const k of ['trades', 'belegt', 'demo_ausfuehrungen', 'offene_positionen', 'kandidaten', 'offline_min']) $('k-' + k).textContent = de(s[k]);
-    rowsOrEmpty($('t-trades'), s.liste_trades || [], 8, 'Noch kein Trade der Top 100 im Beobachtungsfenster.', (d) => { const tr = el('tr');
+    const tradeRows = s.liste_trades ?? [];
+    const rankingLimit = s.ranglisten_limit;
+    const top20Rows = tradeRows.filter(({rang}) => Number.isInteger(rang) && rang >= 1 && rang <= 20).length;
+    const rankingLabel = Number.isInteger(rankingLimit) && rankingLimit > 0
+      ? `Ranglistenlimit Top ${de(rankingLimit, 0)}`
+      : 'Ranglistenlimit im Export fehlt';
+    $('ranking-scope').textContent = tradeRows.length
+      ? `${rankingLabel} · ${de(top20Rows, 0)} von ${de(tradeRows.length, 0)} veröffentlichten Zeilen mit Rang 1–20`
+      : rankingLabel;
+    rowsOrEmpty($('t-trades'), tradeRows, 8, 'Keine Trades im veröffentlichten Stand.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.trader), el('td', 'num', d.rang), pill(d.seite, d.seite === 'Kauf' ? 'buy' : 'sell'),
         el('td', null, d.token ? '$' + d.token : '—'), el('td', 'mono', d.chain || '—'), pill(d.status, d.status === 'belegt' ? 'ok' : d.status === 'nicht belegbar' ? 'warn' : 'muted'), el('td', null, d.detail)); return tr; });
     rowsOrEmpty($('t-trader'), s.liste_trader || [], 9, 'Noch kein Trader mit Aktivität.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.trader), el('td', 'num', d.rang), el('td', 'num', d.signale), el('td', 'num', d.ausgefuehrt), el('td', 'num', d.abgeschlossen), el('td', 'num', d.offen),
         el('td', 'num', de(d.rendite_pct, 2) + ' %'), el('td', 'num', de(d.drawdown_pct, 2) + ' %'), pill(d.status, d.status === 'qualifiziert' ? 'ok' : 'muted')); return tr; });
-    $('a2-coins').textContent = s.a2_coins != null ? de(s.a2_coins) : '—';
-    const signed = (v, digits, unit) => (v > 0 ? '+' : '') + de(v, digits) + unit;
+    $('a2-coins').textContent = de(s.a2_coins);
+    $('a2-accounts').textContent = de(s.liste_strategien?.length, 0);
+    const signed = (value, digits, unit) => {
+      const formatted = de(value, digits);
+      return formatted === '—' ? formatted : (value > 0 ? '+' : '') + formatted + unit;
+    };
     const cls = (v) => 'num ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
     $('strats').replaceChildren(...(s.liste_strategien || []).map((d) => { const c = el('div', 'card strat');
       const ret = el('div', 'ret ' + (d.rendite_pct > 0 ? 'pos' : d.rendite_pct < 0 ? 'neg' : ''), signed(d.rendite_pct, 2, ' %'));
@@ -269,22 +319,27 @@ li { margin: 4px 0; max-width: 75ch; }
       tr.append(el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', 'mono', d.gekauft), el('td', cls(d.stand_pct), signed(d.stand_pct, 1, ' %')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-sig'), s.liste_signale || [], 6, 'Noch kein Signal.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), pill(d.aktion, d.aktion === 'kaufen' ? 'buy' : 'sell'), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', null, d.detail)); return tr; });
-    $('lg-status').textContent = s.lg_trainiert == null ? 'Das Lerngehirn startet mit dem nächsten Durchlauf.'
-      : s.lg_aktiv ? `Aktiv seit genug Beispielen: stützt sich auf ${de(s.lg_trainiert)} abgeschlossene Lern-Trades, kauft nur bei positivem Erfahrungswert und nutzt die Marge von „${s.lg_stufe}“. Neu berechnet ${s.lg_stand}.`
-      : `Sammelt noch Beispiele: ${de(s.lg_trainiert)} von ${de(s.lg_noetig)} abgeschlossenen Lern-Trades. Erst dann fängt es an, selbst zu kaufen.`;
+    const learningStatus = s.lg_trainiert == null ? 'Kein Lernstatus im Export.'
+      : s.lg_aktiv === true ? `Als aktiv gemeldet · ${de(s.lg_trainiert)} abgeschlossene Lern-Trades`
+      : `Beispiele gesammelt ${de(s.lg_trainiert)} / ${de(s.lg_noetig)}`;
+    $('lg-status').textContent = s.lg_stufe && s.lg_aktiv === true
+      ? `${learningStatus} · Gewählte Stufe ${s.lg_stufe}` : learningStatus;
     $('blocked').textContent = (s.liste_gesperrt || []).length ? s.liste_gesperrt.map((d) => '$' + d.token + ' bis ' + d.bis).join(', ') : 'derzeit keiner';
     rowsOrEmpty($('t-errors'), s.liste_fehler || [], 5, 'Noch kein Verlust-Trade eingeordnet.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.konto), el('td', null, d.fehler), el('td', 'num', d.anzahl), el('td', 'num', de(d.anteil_pct) + ' %'), el('td', null, d.folge)); return tr; });
-    rowsOrEmpty($('t-check'), s.liste_pruefung || [], 6, 'Noch keine Prüfung: Ein Lernkonto wird erst ab 20 abgeschlossenen Trades beurteilt.', (d) => { const tr = el('tr');
+    rowsOrEmpty($('t-check'), s.liste_pruefung || [], 6, 'Keine Prüfungen im Export.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.stufe), el('td', null, d.befund), el('td', null, d.variante), el('td', null, d.test), pill(d.urteil, d.uebernommen ? 'ok' : 'muted')); return tr; });
     rowsOrEmpty($('t-tiers'), s.liste_stufen || [], 8, 'Noch keine Lernkonten.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.stufe), el('td', 'num', '+' + de(d.ziel_pct) + ' %'), el('td', 'num', de(d.stop_pct) + ' %'), el('td', 'num', d.haltezeit || '—'), el('td', 'num', d.heute), el('td', 'num', d.trades),
         el('td', d.schnitt_pct == null ? 'num' : cls(d.schnitt_pct), d.schnitt_pct == null ? '—' : signed(d.schnitt_pct, 2, ' %')), d.gewaehlt ? pill('aktuelle Wahl', 'ok') : el('td', null, '')); return tr; });
     rowsOrEmpty($('t-beliefs'), s.liste_glauben || [], 4, 'Noch keine abgeschlossenen Lern-Trades.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.merkmal), el('td', null, d.auspraegung), el('td', 'num', d.trades), el('td', cls(d.wert_pct), signed(d.wert_pct, 2, ' %'))); return tr; });
-    $('a2-done').textContent = de(s.a2_heute || 0); $('a2-goal').textContent = de(s.a2_ziel || 1250);
-    $('a2-total').textContent = de(s.a2_abgeschlossen || 0); $('a2-tempo').textContent = s.a2_tempo != null ? de(s.a2_tempo) : '—';
-    $('a2-fill').style.width = Math.min(100, (s.a2_heute || 0) / (s.a2_ziel || 1250) * 100) + '%';
+    $('a2-done').textContent = de(s.a2_heute, 0);
+    $('a2-goal').textContent = de(s.a2_ziel, 0);
+    $('a2-total').textContent = de(s.a2_abgeschlossen, 0);
+    $('a2-tempo').textContent = de(s.a2_tempo);
+    const goalProgress = s.a2_ziel > 0 && s.a2_heute >= 0 ? Math.min(100, s.a2_heute / s.a2_ziel * 100) : 0;
+    $('a2-fill').style.width = goalProgress + '%';
     rowsOrEmpty($('t-done'), s.liste_abgeschlossen || [], 7, 'Noch kein abgeschlossener Demo-Trade.', (d) => { const tr = el('tr');
       tr.append(el('td', 'mono', d.zeit), el('td', null, d.strategie), el('td', null, '$' + d.token), el('td', 'mono', d.chain), el('td', cls(d.ergebnis_pct), signed(d.ergebnis_pct, 1, ' %')), el('td', cls(d.ergebnis_usd), signed(d.ergebnis_usd, 2, '')), el('td', null, d.grund)); return tr; });
     rowsOrEmpty($('t-learn'), s.liste_lernen || [], 6, 'Noch keine abgeschlossenen Trades zum Auswerten.', (d) => { const tr = el('tr');
@@ -292,20 +347,48 @@ li { margin: 4px 0; max-width: 75ch; }
     $('bt-coins').textContent = s.bt_coins ? de(s.bt_coins) : '—'; $('bt-stand').textContent = s.bt_stand || 'noch nicht gerechnet';
     rowsOrEmpty($('t-bt'), s.liste_backtest || [], 8, 'Die erste Rückrechnung läuft etwa zehn Minuten nach dem Start des Agenten.', (d) => { const tr = el('tr');
       tr.append(el('td', null, d.strategie), el('td', 'num', de(d.stop) + ' %'), el('td', 'num', '+' + de(d.ziel) + ' %'), el('td', 'num', d.trades), el('td', 'num', de(d.trefferquote_pct) + ' %'),
-        el('td', cls(d.schnitt_pct), signed(d.schnitt_pct, 2, ' %')), el('td', cls(d.summe_usd), signed(d.summe_usd, 2, ' USD')), pill(d.aktuell ? 'läuft live' : 'Alternative', d.aktuell ? 'ok' : 'muted')); return tr; });
+        el('td', cls(d.schnitt_pct), signed(d.schnitt_pct, 2, ' %')), el('td', cls(d.summe_usd), signed(d.summe_usd, 2, ' USD')), pill(d.aktuell ? 'Aktive Paper-Variante' : 'Alternative', d.aktuell ? 'ok' : 'muted')); return tr; });
+    // Getrennter Fünf-Agenten-Lauf: alles aus dem Export, keine festen Annahmen.
+    const f = s.fuenf_agenten;
+    $('fa-wrap').hidden = !(f && f.ready);
+    if (f && f.ready) {
+      const cur = f.waehrung || '';
+      const beat = (b) => !b || !b.ts ? 'fehlt' : f.exportiert_ms - b.ts <= 180_000 ? 'läuft' : 'steht';
+      const agents = Object.values(f.heartbeats?.agenten ?? {}).map(beat);
+      const started = f.startzeit ? new Date(f.startzeit).toLocaleString('de-DE', {timeZone: 'Europe/Rome'}) : '—';
+      $('fa-intro').textContent = `Lauf ${f.lauf} · Modus ${f.modus}, alle Orders simuliert · Ranglistenlimit Top ${de(f.ranglisten_limit, 0)} · Ranking-Fenster ${f.ranking_fenster} · Start ${started} · ${de(f.konten, 0)} Konten · Währung ${cur}`;
+      $('fa-status').textContent = `Feed ${beat(f.heartbeats?.feed)} · Agenten ${agents.filter((x) => x === 'läuft').length} von ${agents.length} laufen · Publisher ${beat(f.heartbeats?.publisher)} · ${de(f.gaps, 0)} Datenlücken · ${f.rangfolge || ''}`;
+      rowsOrEmpty($('t-fa'), f.buecher || [], 7, 'Keine Konten im Export.', (d) => { const tr = el('tr');
+        tr.append(el('td', null, d.name), el('td', 'num', de(d.geschlossen, 0)), el('td', cls(d.realisiert_eur), signed(d.realisiert_eur, 2, ' ' + cur)),
+          el('td', cls(d.offen_eur), signed(d.offen_eur, 2, ' ' + cur)), el('td', 'num', de(d.kosten_eur, 2) + ' ' + cur), el('td', 'num', de(d.max_drawdown_eur, 2) + ' ' + cur),
+          pill(d.vorlaeufig ? 'vorläufig' : 'ausreichend', d.vorlaeufig ? 'muted' : 'ok')); return tr; });
+    }
     chart(); freshness();
   }
   async function load() {
+    let newest = state;
     for (const url of SOURCES) {
       try {
-        const reply = await fetch(url + '?t=' + Date.now(), {cache: 'no-store'});
+        const reply = await fetch(url + '?t=' + Date.now(), {
+          cache: 'no-store',
+          signal: AbortSignal.timeout(8_000),
+        });
         if (!reply.ok) continue;
         const next = await reply.json();
-        if (!state || !next.stand_iso || next.stand_iso >= state.stand_iso) state = next;
-        render(); return;
+        if (!isUsableSnapshot(next)) continue;
+        if (!newest || snapshotTime(next) > snapshotTime(newest)) newest = next;
+        if (Date.now() - snapshotTime(newest) < MAX_SNAPSHOT_AGE_MS) break;
       } catch (error) { /* try the next source */ }
     }
-    if (!state) $('lage').textContent = 'Der aktuelle Stand konnte nicht geladen werden. Die Seite versucht es gleich wieder.';
+    if (newest && (!state || snapshotTime(newest) > snapshotTime(state))) {
+      state = newest;
+      render();
+      return;
+    }
+    if (!state) {
+      $('lage').textContent = 'Der Datenstand konnte nicht geladen werden.';
+      $('dienste').textContent = 'Keine Daten verfügbar';
+    }
     freshness();
   }
   load(); setInterval(load, 30000); setInterval(freshness, 15000);
