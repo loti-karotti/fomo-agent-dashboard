@@ -189,6 +189,7 @@ li { margin: 4px 0; max-width: 75ch; }
   <section class="card">
     <h2>Konten des Fünf-Agenten-Laufs</h2>
     <p class="sub" id="fa-status">—</p>
+    <p class="sub" id="fa-a2">—</p>
     <div class="scroll"><table><thead><tr><th>Konto</th><th class="num">Abgeschlossen</th><th class="num">Realisiert</th><th class="num">Offen</th><th class="num">Kosten</th><th class="num">Max. Drawdown</th><th>Stichprobe</th></tr></thead><tbody id="t-fa"></tbody></table></div>
   </section>
   </div>
@@ -358,6 +359,15 @@ li { margin: 4px 0; max-width: 75ch; }
       const started = f.startzeit ? new Date(f.startzeit).toLocaleString('de-DE', {timeZone: 'Europe/Rome'}) : '—';
       $('fa-intro').textContent = `Lauf ${f.lauf} · Modus ${f.modus}, alle Orders simuliert · Ranglistenlimit Top ${de(f.ranglisten_limit, 0)} · Ranking-Fenster ${f.ranking_fenster} · Start ${started} · ${de(f.konten, 0)} Konten · Währung ${cur}`;
       $('fa-status').textContent = `Feed ${beat(f.heartbeats?.feed)} · Agenten ${agents.filter((x) => x === 'läuft').length} von ${agents.length} laufen · Publisher ${beat(f.heartbeats?.publisher)} · ${de(f.gaps, 0)} Datenlücken · ${f.rangfolge || ''}`;
+      const a2 = f.agent2_diagnose;
+      const befund = {WARTET_AUF_DATEN: 'wartet auf Daten', BEOBACHTET: 'beobachtet', KEIN_EINSTIEG: 'kein Einstieg', HANDELT: 'handelt', FEHLT: 'Diagnose fehlt'};
+      $('fa-a2').hidden = !a2;
+      if (a2) {
+        const gruende = (a2.ablehnungsgruende || []).map((g) => `${g.grund} (${de(g.anzahl, 0)})`).join(', ');
+        $('fa-a2').textContent = `Memecoin-Bot (Agent 2): ${befund[a2.befund] || a2.befund} – ${a2.grund}`
+          + (a2.befund === 'FEHLT' ? '' : ` · ${de(a2.ranglisten, 0)} Ranglisten · ${de(a2.trader_ereignisse, 0)} Trader-Ereignisse, davon ${de(a2.kaufsignale_top_n, 0)} Kaufsignale aus den Top ${de(a2.top_n, 0)} · ${de(a2.genehmigte_einstiege, 0)} Einstiege genehmigt · ${de(a2.trades, 0)} Trades, ${signed(a2.netto_eur, 2, ' ' + cur)}`
+          + (gruende ? ` · abgelehnt: ${gruende}` : ''));
+      }
       rowsOrEmpty($('t-fa'), f.buecher || [], 7, 'Keine Konten im Export.', (d) => { const tr = el('tr');
         tr.append(el('td', null, d.name), el('td', 'num', de(d.geschlossen, 0)), el('td', cls(d.realisiert_eur), signed(d.realisiert_eur, 2, ' ' + cur)),
           el('td', cls(d.offen_eur), signed(d.offen_eur, 2, ' ' + cur)), el('td', 'num', de(d.kosten_eur, 2) + ' ' + cur), el('td', 'num', de(d.max_drawdown_eur, 2) + ' ' + cur),
